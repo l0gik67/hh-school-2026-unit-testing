@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import ru.hh.school.unittesting.homework.LibraryManager;
+import ru.hh.school.unittesting.homework.NotificationService;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -14,20 +15,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 
 public class LibraryManagerTest {
 
 
-    private final LibraryManager libraryManager = new LibraryManager(null, null);
-
+    private  LibraryManager libraryManager;
+    private NotificationService notificationService;
+    private Map<String, Integer> bookInventory;
+    private Map<String, String> borrowedBooks;
 
     @BeforeEach
     void setUp() throws NoSuchFieldException,
             IllegalAccessException {
+        notificationService = mock(NotificationService.class);
+        libraryManager = new LibraryManager(notificationService, null);
+
         Field bookInventoryField = libraryManager.getClass().getDeclaredField("bookInventory");
         bookInventoryField.setAccessible(true);
-        bookInventoryField.set(libraryManager, new HashMap<>());
+        bookInventory = (Map<String, Integer>) bookInventoryField.get(libraryManager);
+        bookInventoryField.set(libraryManager, bookInventory);
         libraryManager.addBook("book1", 7);
         libraryManager.addBook("book2", 0);
         libraryManager.addBook("book3", 18);
@@ -35,8 +43,27 @@ public class LibraryManagerTest {
         Field borrowedBooksField = libraryManager.getClass().getDeclaredField("borrowedBooks");
         borrowedBooksField.setAccessible(true);
         borrowedBooksField.set(libraryManager, new HashMap<>());
-        Map<String, String> borrowedBooks = (Map<String, String>) borrowedBooksField.get(libraryManager);
+        borrowedBooks = (Map<String, String>) borrowedBooksField.get(libraryManager);
         borrowedBooks.put("book2", "user1");
+        borrowedBooks.put("book1", "user1");
+    }
+
+    @Test
+    void returnBookReturnsFalseWhenBookIdNotInBorrowedBooks() {
+        assertFalse(libraryManager.returnBook("book3", "user1"));
+    }
+
+    @Test
+    void returnBookReturnsFalseWhenUserIdNotEqualsWithIdFromMap() {
+        assertFalse(libraryManager.returnBook("book2", "user2"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"book2, user1, 1", "book1, user1, 8"})
+    void returnBookReturnsTrueWhenBookWasBorrowed(String bookId, String userId, int expectedCount) {
+        assertTrue(libraryManager.returnBook(bookId, userId));
+        assertEquals(expectedCount, bookInventory.get(bookId));
+        assertFalse(borrowedBooks.containsKey(bookId));
     }
 
     @Test
