@@ -23,7 +23,7 @@ public class LibraryManager {
   }
 
   public void addBook(String bookId, int quantity) {
-    bookInventory.put(bookId, bookInventory.getOrDefault(bookId, 0) + quantity);
+    bookInventory.put(bookId, bookInventory.getOrDefault(bookId, 0) + quantity); // вот сюда вообще можно добавить отрицательное число, мы это как то обсудим :) ?
   }
 
   public boolean borrowBook(String bookId, String userId) {
@@ -38,7 +38,7 @@ public class LibraryManager {
     }
 
     bookInventory.put(bookId, availableCopies - 1);
-    borrowedBooks.put(bookId, userId);
+    borrowedBooks.put(bookId, userId); // а тут мы затрем прошлое заимствование такой же книги
     notificationService.notifyUser(userId, "You have borrowed the book: " + bookId);
     return true;
   }
