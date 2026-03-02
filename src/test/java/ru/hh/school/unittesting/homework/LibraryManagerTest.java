@@ -2,34 +2,37 @@ package ru.hh.school.unittesting.homework;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
+@ExtendWith(MockitoExtension.class)
 public class LibraryManagerTest {
 
 
-    private  LibraryManager libraryManager;
+    @Mock
     private UserService userService;
+    @Mock
     private NotificationService notificationService;
+    @InjectMocks
+    private  LibraryManager libraryManager;
+
     private Map<String, Integer> bookInventory;
     private Map<String, String> borrowedBooks;
 
     @BeforeEach
     void setUp() throws NoSuchFieldException,
             IllegalAccessException {
-        notificationService = mock(NotificationService.class);
-        userService = mock(UserService.class);
-        libraryManager = new LibraryManager(notificationService, userService);
-
         Field bookInventoryField = libraryManager.getClass().getDeclaredField("bookInventory");
         bookInventoryField.setAccessible(true);
         bookInventory = (Map<String, Integer>) bookInventoryField.get(libraryManager);
@@ -51,20 +54,30 @@ public class LibraryManagerTest {
     @Test
     void borrowBookReturnsFalseIfUserIsUnactive() {
         when(userService.isUserActive("user4")).thenReturn(false);
+        int countBooksBeforeBorrowing = bookInventory.getOrDefault("book1", 0);
         assertFalse(libraryManager.borrowBook("book1", "user4"));
+        assertFalse(libraryManager.borrowBook("book1", "user4"));
+        int countBooksAfterBorrowing = bookInventory.getOrDefault("book1", 0);
+        assertEquals(countBooksBeforeBorrowing, countBooksAfterBorrowing);
     }
 
     @ParameterizedTest
     @CsvSource({"user1, book2", "user1, book4"})
     void borrowBookReturnsFalseWhenTheBooksAreOver(String bookId, String userId) {
         when(userService.isUserActive(userId)).thenReturn(true);
+        int countBooksBeforeBorrowing = bookInventory.getOrDefault(bookId, 0);
         assertFalse(libraryManager.borrowBook(bookId, userId));
+        int countBooksAfterBorrowing = bookInventory.getOrDefault(bookId, 0);
+        assertEquals(countBooksBeforeBorrowing, countBooksAfterBorrowing);
     }
 
     @ParameterizedTest
-    @CsvSource({"book1, user1"})
+    @CsvSource({"book1, user1, 6", "book3, user1, 17"})
     void borrowBookReturnsTrueWhenWeBorrowBookSuccessfully(String bookId, String userId, int expectedCount) {
-
+        when(userService.isUserActive(userId)).thenReturn(true);
+        assertTrue(libraryManager.borrowBook(bookId, userId));
+        int countBooksAfterBorrowing = bookInventory.getOrDefault(bookId, 0);
+        assertEquals(countBooksAfterBorrowing, expectedCount);
     }
 
     @Test
