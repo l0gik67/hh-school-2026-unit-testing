@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LibraryManager {
-
   private static final double BASE_LATE_FEE_PER_DAY = 0.5;
   private static final double BESTSELLER_MULTIPLIER = 1.5;
   private static final double PREMIUM_MEMBER_DISCOUNT = 0.8;
