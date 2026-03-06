@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LibraryManager {
-
   private static final double BASE_LATE_FEE_PER_DAY = 0.5;
   private static final double BESTSELLER_MULTIPLIER = 1.5;
   private static final double PREMIUM_MEMBER_DISCOUNT = 0.8;
@@ -23,7 +22,7 @@ public class LibraryManager {
   }
 
   public void addBook(String bookId, int quantity) {
-    bookInventory.put(bookId, bookInventory.getOrDefault(bookId, 0) + quantity);
+    bookInventory.put(bookId, bookInventory.getOrDefault(bookId, 0) + quantity); // вот сюда вообще можно добавить отрицательное число, мы это как то обсудим :) ?
   }
 
   public boolean borrowBook(String bookId, String userId) {
@@ -38,7 +37,7 @@ public class LibraryManager {
     }
 
     bookInventory.put(bookId, availableCopies - 1);
-    borrowedBooks.put(bookId, userId);
+    borrowedBooks.put(bookId, userId); // а тут мы затрем прошлое заимствование такой же книги
     notificationService.notifyUser(userId, "You have borrowed the book: " + bookId);
     return true;
   }
